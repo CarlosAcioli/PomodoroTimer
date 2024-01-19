@@ -15,9 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.acioli.pomodorotimer.pomodoro_timer_service.presentation.time_tracker.TimeTrackerViewModel
+import com.acioli.pomodorotimer.pomodoro_timer_service.presentation.time_tracker.PomodoroViewModel
 import com.acioli.pomodorotimer.ui.theme.PomodoroTimerTheme
+import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.absoluteValue
+import kotlin.time.Duration.Companion.seconds
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,28 +43,35 @@ fun Greeting() {
         contentAlignment = Alignment.Center
     ) {
 
-        val vm = viewModel<TimeTrackerViewModel>()
-        val state = vm.state.collectAsState()
-        val pause = vm.pause.collectAsState()
-        val longPause = vm.longPause.collectAsState()
+        val mainTrackerViewModel = viewModel<PomodoroViewModel>()
+        val mainTimerState = mainTrackerViewModel.state.collectAsState()
+        val shortPauseState = mainTrackerViewModel.pause.collectAsState()
+        val longPauseSate = mainTrackerViewModel.longPause.collectAsState()
+        val cycleState = mainTrackerViewModel.cycleState.collectAsState()
 
         Column {
 
             Text(
-                text = "Time is: ${state.value}",
+                text = "Time is: ${mainTimerState.value.absoluteValue}",
                 fontSize = 30.sp
             )
 
             Text(
-                text = "Break: ${pause.value}"
+                text = "Break is: ${shortPauseState.value.absoluteValue}"
+            )
+
+
+            Text(
+                text = "Long break: ${longPauseSate.value.absoluteValue}"
             )
 
             Text(
-                text = "Long break: ${longPause.value}"
+                text = "Cycle: ${cycleState.value}"
             )
 
             Button(
                 onClick = {
+                    mainTrackerViewModel.stop()
                 }
             ) {
                 Text(text = "Stop")
@@ -68,24 +79,10 @@ fun Greeting() {
 
             Button(
                 onClick = {
-                    vm.start()
+                    mainTrackerViewModel.start(4.seconds, 4.seconds, 10.seconds, 2)
                 }
             ) {
                 Text(text = "Start")
-            }
-
-            Button(
-                onClick = {
-                }
-            ) {
-                Text(text = "Resume")
-            }
-
-            Button(
-                onClick = {
-                }
-            ) {
-                Text(text = "Pause")
             }
 
         }
