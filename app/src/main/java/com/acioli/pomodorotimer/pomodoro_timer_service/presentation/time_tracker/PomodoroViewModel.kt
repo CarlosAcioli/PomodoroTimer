@@ -1,5 +1,6 @@
 package com.acioli.pomodorotimer.pomodoro_timer_service.presentation.time_tracker
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.acioli.pomodorotimer.pomodoro_timer_service.data.timeTracker.TimeTrackerInterfaceImpl
@@ -25,6 +26,29 @@ class PomodoroViewModel: ViewModel() {
     val cycleState = _cycleState.asStateFlow()
 
     private val timeTracker = TimeTrackerInterfaceImpl()
+
+    init {
+        viewModelScope.launch{
+            launch {
+                timeTracker.focusState.collect{
+                    Log.d("pomodoro", "focus - ${it.absoluteValue}")
+                }
+            }
+
+            launch {
+                timeTracker.shortPause.collect{
+                    Log.d("pomodoro", "short pause - ${it.absoluteValue}")
+                }
+            }
+
+            launch {
+                timeTracker.longPause.collect{
+                    Log.d("pomodoro", "long pause - ${it.absoluteValue}")
+                }
+            }
+
+        }
+    }
 
     fun start(focus: Duration, shortPause: Duration, longPause: Duration, cycles: Int) {
 
