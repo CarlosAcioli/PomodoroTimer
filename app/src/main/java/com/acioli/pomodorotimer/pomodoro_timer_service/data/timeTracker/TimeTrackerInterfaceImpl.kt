@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 class TimeTrackerInterfaceImpl : TimerTrackerInterface {
@@ -59,7 +60,7 @@ class TimeTrackerInterfaceImpl : TimerTrackerInterface {
 
                     if (initialTime == 0.seconds) {
 
-                        _focusState.value = focus
+//                        _focusState.value = focus
                         var pause = shortPause
                         _shortPause.value = pause
 //                        Log.d("Analysing", "pauseState value loop: ${this@TimeTrackerInterfaceImpl.shortPause.value.absoluteValue} ")
@@ -81,7 +82,7 @@ class TimeTrackerInterfaceImpl : TimerTrackerInterface {
                 }
 
                 isNotLongBreak = false
-                start(focus, shortPause, longPause, cycles)
+                start(0.minutes, shortPause, longPause, cycles)
 
             } else {
 

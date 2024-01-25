@@ -32,6 +32,7 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.acioli.pomodorotimer.pomodoro_timer_service.domain.service.PomodoroTimerService
 import com.acioli.pomodorotimer.pomodoro_timer_service.presentation.time_tracker.PomodoroViewModel
+import com.acioli.pomodorotimer.pomodoro_timer_service.presentation.time_tracker.view.MainScreen
 import com.acioli.pomodorotimer.ui.theme.PomodoroTimerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.time.Duration
@@ -79,104 +80,106 @@ fun Greeting(context: Context) {
         val sheetState = rememberModalBottomSheetState()
         var isSheetOpen by remember { mutableStateOf(false) }
 
-        Column {
+        MainScreen()
 
-            Text(
-                text = "Time is: ${mainTimerState.value.absoluteValue}",
-                fontSize = 30.sp
-            )
-
-            Text(
-                text = "Break is: ${shortPauseState.value.absoluteValue}"
-            )
-
-
-            Text(
-                text = "Long break: ${longPauseSate.value.absoluteValue}"
-            )
-
-            Text(
-                text = "Cycle: ${cycleState.value}"
-            )
-
-            Button(
-                onClick = {
-                    mainTrackerViewModel.stop()
-                }
-            ) {
-                Text(text = "Stop")
-            }
-
-            Button(
-                onClick = {
-                    isSheetOpen = true
-                }
-            ) {
-                Text(text = "Choose pomodoro timer")
-            }
-
-            Button(
-                onClick = {
-                    mainTrackerViewModel.start(4.seconds, 4.seconds, 10.seconds, 2)
-
-                    Intent(context, PomodoroTimerService::class.java).also {
-                        val focus = 4
-                        val shortPause = 4
-                        val longPause = 10
-                        val cycle = 2
-                        it.action = PomodoroTimerService.Actions.START.toString()
-                        it.putExtra("focus", focus)
-                        it.putExtra("short", shortPause)
-                        it.putExtra("long", longPause)
-                        it.putExtra("cycle", cycle)
-                        context.startService(it)
-                    }
-                }
-            ) {
-                Text(text = "Start")
-            }
-
-            Button(
-                onClick = {
-                    Intent(context, PomodoroTimerService::class.java).also {
-                        it.action = PomodoroTimerService.Actions.START.toString()
-                        context.startService(it)
-                    }
-                }
-            ) {
-                Text(text = "Foreground service on")
-            }
-
-            Button(
-                onClick = {
-                    Intent(context, PomodoroTimerService::class.java).also {
-                        it.action = PomodoroTimerService.Actions.STOP.toString()
-                        context.startService(it)
-                    }
-                }
-            ) {
-                Text(text = "Foreground service off")
-            }
-
-        }
-
-        if (isSheetOpen) {
-            ModalBottomSheet(
-                onDismissRequest = {
-                    isSheetOpen = false
-                },
-                sheetState = sheetState
-            ) {
-                Column(
-                    modifier = Modifier.padding(10.dp)
-                ) {
-                    Text(text = "Focus timer:")
-                    Text(text = "Short Pause:")
-                    Text(text = "Long Pause after cycle:")
-                    Text(text = "Cycles:")
-                }
-            }
-        }
+//        Column {
+//
+//            Text(
+//                text = "Time is: ${mainTimerState.value.absoluteValue}",
+//                fontSize = 30.sp
+//            )
+//
+//            Text(
+//                text = "Break is: ${shortPauseState.value.absoluteValue}"
+//            )
+//
+//
+//            Text(
+//                text = "Long break: ${longPauseSate.value.absoluteValue}"
+//            )
+//
+//            Text(
+//                text = "Cycle: ${cycleState.value}"
+//            )
+//
+//            Button(
+//                onClick = {
+//                    mainTrackerViewModel.stop()
+//                }
+//            ) {
+//                Text(text = "Stop")
+//            }
+//
+//            Button(
+//                onClick = {
+//                    isSheetOpen = true
+//                }
+//            ) {
+//                Text(text = "Choose pomodoro timer")
+//            }
+//
+//            Button(
+//                onClick = {
+//                    mainTrackerViewModel.start(4.seconds, 4.seconds, 10.seconds, 2)
+//
+//                    Intent(context, PomodoroTimerService::class.java).also {
+//                        val focus = 4
+//                        val shortPause = 4
+//                        val longPause = 10
+//                        val cycle = 2
+//                        it.action = PomodoroTimerService.Actions.START.toString()
+//                        it.putExtra("focus", focus)
+//                        it.putExtra("short", shortPause)
+//                        it.putExtra("long", longPause)
+//                        it.putExtra("cycle", cycle)
+//                        context.startService(it)
+//                    }
+//                }
+//            ) {
+//                Text(text = "Start")
+//            }
+//
+//            Button(
+//                onClick = {
+//                    Intent(context, PomodoroTimerService::class.java).also {
+//                        it.action = PomodoroTimerService.Actions.START.toString()
+//                        context.startService(it)
+//                    }
+//                }
+//            ) {
+//                Text(text = "Foreground service on")
+//            }
+//
+//            Button(
+//                onClick = {
+//                    Intent(context, PomodoroTimerService::class.java).also {
+//                        it.action = PomodoroTimerService.Actions.STOP.toString()
+//                        context.startService(it)
+//                    }
+//                }
+//            ) {
+//                Text(text = "Foreground service off")
+//            }
+//
+//        }
+//
+//        if (isSheetOpen) {
+//            ModalBottomSheet(
+//                onDismissRequest = {
+//                    isSheetOpen = false
+//                },
+//                sheetState = sheetState
+//            ) {
+//                Column(
+//                    modifier = Modifier.padding(10.dp)
+//                ) {
+//                    Text(text = "Focus timer:")
+//                    Text(text = "Short Pause:")
+//                    Text(text = "Long Pause after cycle:")
+//                    Text(text = "Cycles:")
+//                }
+//            }
+//        }
 
 
     }
