@@ -1,6 +1,7 @@
 package com.acioli.pomodorotimer.pomodoro_timer_service.presentation.time_tracker.view
 
 import android.annotation.SuppressLint
+import android.media.MediaPlayer
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,13 +9,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,7 +50,6 @@ import com.acioli.pomodorotimer.ui.theme.fontFamilyLexend
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -60,6 +62,9 @@ fun MainScreen() {
     val focusRequester2 = remember { FocusRequester() }
     val focusRequester3 = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    val mpStart: MediaPlayer = MediaPlayer.create(LocalContext.current, R.raw.start_timer)
+    val mpPause: MediaPlayer = MediaPlayer.create(LocalContext.current, R.raw.pause_timer)
+    val mpStop: MediaPlayer = MediaPlayer.create(LocalContext.current, R.raw.end_timer)
 
     var focusDuration by remember { mutableStateOf("") }
     var shortPauseDuration by remember { mutableStateOf("") }
@@ -97,8 +102,8 @@ fun MainScreen() {
                     ) {
 
                         CustomComponent(
-                            indicatorValue = if(shortPauseState.value > 0.seconds) shortPauseState.value.absoluteValue else if(longPauseSate.value > 0.seconds) longPauseSate.value.absoluteValue else mainTimerState.value.absoluteValue,
-                            maxIndicatorValue = if(shortPauseState.value > 0.seconds && shortPauseDuration.isNotBlank()) shortPauseDuration.toInt().seconds else if(longPauseSate.value > 0.seconds && longPauseDuration.isNotBlank()) longPauseDuration.toInt().seconds else if(mainTimerState.value > 0.seconds && focusDuration.isNotBlank()) focusDuration.toInt().seconds else 10.seconds,
+                            indicatorValue = if(shortPauseState.value > 0.seconds) shortPauseState.value.inWholeSeconds else if(longPauseSate.value > 0.seconds) longPauseSate.value.inWholeSeconds else mainTimerState.value.inWholeSeconds,
+                            maxIndicatorValue = if(shortPauseState.value > 0.seconds && shortPauseDuration.isNotBlank()) shortPauseDuration.toInt().minutes.inWholeSeconds else if(longPauseSate.value > 0.seconds && longPauseDuration.isNotBlank()) longPauseDuration.toInt().minutes.inWholeSeconds else if(mainTimerState.value > 0.seconds && focusDuration.isNotBlank()) focusDuration.toInt().minutes.inWholeSeconds else 10.minutes.inWholeSeconds,
                             smallText = if(shortPauseState.value > 0.seconds) "Pause time" else if(longPauseSate.value > 0.seconds) "Long pause" else "Focus time"
                         )
 
@@ -149,11 +154,12 @@ fun MainScreen() {
                             Button(
                                 onClick = {
                                     mainTrackerViewModel.start(
-                                        focusDuration.toInt().seconds,
-                                        shortPauseDuration.toInt().seconds,
-                                        longPauseDuration.toInt().seconds,
+                                        focusDuration.toInt().minutes,
+                                        shortPauseDuration.toInt().minutes,
+                                        longPauseDuration.toInt().minutes,
                                         cycleUntilLongPause.toInt()
                                     )
+
                                 }
                             ) {
                                 Text(text = "Click")
@@ -201,7 +207,19 @@ fun MainScreen() {
                         .clickable {
                             isSheetOpen = true
                         }
+                        .size(32.dp)
                         .padding(end = 10.dp, top = 10.dp),
+                )
+
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Configurações",
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(start = 10.dp, top = 10.dp)
+                        .clickable {
+
+                        }
                 )
 
                 if (isSheetOpen) {
@@ -215,8 +233,7 @@ fun MainScreen() {
                         Column(
                             modifier = Modifier
                                 .padding(10.dp)
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.Center,
+                                .fillMaxSize(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
 
@@ -364,6 +381,16 @@ fun MainScreen() {
             }
 
         }
+    }
+
+    if( focusDuration.isNotBlank() && mainTimerState.value.absoluteValue == focusDuration.toInt().minutes){
+        mpStart.start()
+    } else if(shortPauseDuration.isNotBlank() && shortPauseState.value.absoluteValue == shortPauseDuration.toInt().minutes  ) {
+        mpStop.start()
+    } else if(longPauseSate.value == 1.seconds) {
+        mpPause.start()
+    } else if(longPauseDuration.isNotBlank() && longPauseSate.value.absoluteValue == longPauseDuration.toInt().minutes) {
+        mpStop.start()
     }
 
 }

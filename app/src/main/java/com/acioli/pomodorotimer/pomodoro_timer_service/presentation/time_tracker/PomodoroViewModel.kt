@@ -40,19 +40,19 @@ class PomodoroViewModel : ViewModel() {
         viewModelScope.launch {
             launch {
                 timeTracker.focusState.collect {
-                    Log.d("pomodoro", "focus - ${it.absoluteValue}")
+//                    Log.d("pomodoro", "focus - ${it.absoluteValue}")
                 }
             }
 
             launch {
                 timeTracker.shortPause.collect {
-                    Log.d("pomodoro", "short pause - ${it.absoluteValue}")
+//                    Log.d("pomodoro", "short pause - ${it.absoluteValue}")
                 }
             }
 
             launch {
                 timeTracker.longPause.collect {
-                    Log.d("pomodoro", "long pause - ${it.absoluteValue}")
+//                    Log.d("pomodoro", "long pause - ${it.absoluteValue}")
                 }
             }
 

@@ -1,5 +1,7 @@
 package com.acioli.pomodorotimer.pomodoro_timer_service.data.timeTracker
 
+import android.util.Log
+import com.acioli.pomodorotimer.pomodoro_timer_service.presentation.time_tracker.view.timeFormat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -7,9 +9,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+
+private const val FORMAT = "%02d:%02d"
 
 class TimeTrackerInterfaceImpl : TimerTrackerInterface {
 
@@ -54,6 +59,7 @@ class TimeTrackerInterfaceImpl : TimerTrackerInterface {
                         delay(1000L)
                         initialTime -= 1.seconds
                         _focusState.value = initialTime
+                        Log.d("TAG", "start: ${focusState.value.inWholeSeconds.timeFormat()}")
 //                        Log.d("Analysing", "focusState value loop: ${focusState.value.absoluteValue} ")
 
                     }

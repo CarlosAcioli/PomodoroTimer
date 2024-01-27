@@ -43,8 +43,8 @@ import kotlin.time.DurationUnit
 fun CustomComponent(
     modifier: Modifier = Modifier,
     canvasSize: Dp = 300.dp,
-    indicatorValue: Duration = 0.minutes,
-    maxIndicatorValue: Duration = 25.minutes,
+    indicatorValue: Long = 0L,
+    maxIndicatorValue: Long = 25L,
     backgroundIndicatorColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
     backgroundIndicatorStrokeWidth: Float = 50f,
     foregroundIndicatorColor: Color = MaterialTheme.colorScheme.primary,
@@ -70,11 +70,11 @@ fun CustomComponent(
     var animatedIndicatorValue by remember { mutableStateOf(0f) }
 
     LaunchedEffect(key1 = allowedIndicatorValue) {
-        animatedIndicatorValue = allowedIndicatorValue.toInt(DurationUnit.SECONDS).toFloat()
+        animatedIndicatorValue = allowedIndicatorValue.toInt().toFloat()
     }
 
     val percentage =
-        (animatedIndicatorValue / maxIndicatorValue.toInt(DurationUnit.SECONDS)) * 100
+        (animatedIndicatorValue / maxIndicatorValue.toInt()) * 100
 
     val sweepAngle by animateIntAsState(
         targetValue = (2.4 * percentage).toInt(),
@@ -82,17 +82,17 @@ fun CustomComponent(
     )
 
     val totalTimeInSeconds = maxIndicatorValue
-    var timeLeft = remember { mutableLongStateOf(totalTimeInSeconds.toLong(DurationUnit.SECONDS)) }
+    var timeLeft = remember { mutableLongStateOf(totalTimeInSeconds.toLong()) }
 
     val timerText = remember { mutableStateOf(timeLeft.longValue.timeFormat()) }
 
     val receivedValue by animateIntAsState(
-        targetValue = allowedIndicatorValue.toInt(DurationUnit.SECONDS),
+        targetValue = allowedIndicatorValue.toInt(),
         animationSpec = tween(1000), label = ""
     )
 
     val animatedBigTextColor by animateColorAsState(
-        targetValue = if (allowedIndicatorValue == 0.seconds)
+        targetValue = if (allowedIndicatorValue == 0L)
             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
         else
             bigTextColor,
@@ -122,7 +122,7 @@ fun CustomComponent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         EmbeddedElements(
-            bigText = timerText.value,
+            bigText = receivedValue.toLong().timeFormat(),
             bigTextFontSize = bigTextFontSize,
             bigTextColor = animatedBigTextColor,
             bigTextSuffix = bigTextSuffix,
@@ -212,7 +212,7 @@ private const val FORMAT = "%02d:%02d"
 fun Long.timeFormat(): String = String.format(
     FORMAT,
     TimeUnit.SECONDS.toMinutes(this),
-    TimeUnit.SECONDS.toSeconds(this)
+    TimeUnit.SECONDS.toSeconds(this) % 60
 )
 
 @Composable
