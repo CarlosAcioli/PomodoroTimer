@@ -3,6 +3,7 @@ package com.acioli.pomodorotimer
 import android.Manifest
 import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
@@ -26,7 +27,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             PomodoroTimerTheme {
 
-                Greeting()
+                MainScreen()
+
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
             }
         }
@@ -36,11 +39,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting() {
-    MainScreen()
+
 }
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    MainScreen()
+
 }

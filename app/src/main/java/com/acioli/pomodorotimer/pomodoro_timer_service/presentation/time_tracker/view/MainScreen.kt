@@ -1,8 +1,11 @@
 package com.acioli.pomodorotimer.pomodoro_timer_service.presentation.time_tracker.view
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.media.MediaPlayer
 import android.util.Log
+import android.view.Window
+import android.view.WindowManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,6 +51,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.acioli.pomodorotimer.R
 import com.acioli.pomodorotimer.pomodoro_timer_service.presentation.time_tracker.PomodoroViewModel
 import com.acioli.pomodorotimer.ui.theme.fontFamilyLexend
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -62,9 +67,9 @@ fun MainScreen() {
     val focusRequester2 = remember { FocusRequester() }
     val focusRequester3 = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
-    val mpStart: MediaPlayer = MediaPlayer.create(LocalContext.current, R.raw.start_timer)
-    val mpPause: MediaPlayer = MediaPlayer.create(LocalContext.current, R.raw.pause_timer)
-    val mpStop: MediaPlayer = MediaPlayer.create(LocalContext.current, R.raw.end_timer)
+//    val mpStart: MediaPlayer = MediaPlayer.create(context, R.raw.start_timer)
+//    val mpPause: MediaPlayer = MediaPlayer.create(context, R.raw.pause_timer)
+//    val mpStop: MediaPlayer = MediaPlayer.create(context, R.raw.end_timer)
 
     var focusDuration by remember { mutableStateOf("") }
     var shortPauseDuration by remember { mutableStateOf("") }
@@ -102,12 +107,15 @@ fun MainScreen() {
                     ) {
 
                         CustomComponent(
-                            indicatorValue = if(shortPauseState.value > 0.seconds) shortPauseState.value.inWholeSeconds else if(longPauseSate.value > 0.seconds) longPauseSate.value.inWholeSeconds else mainTimerState.value.inWholeSeconds,
-                            maxIndicatorValue = if(shortPauseState.value > 0.seconds && shortPauseDuration.isNotBlank()) shortPauseDuration.toInt().minutes.inWholeSeconds else if(longPauseSate.value > 0.seconds && longPauseDuration.isNotBlank()) longPauseDuration.toInt().minutes.inWholeSeconds else if(mainTimerState.value > 0.seconds && focusDuration.isNotBlank()) focusDuration.toInt().minutes.inWholeSeconds else 10.minutes.inWholeSeconds,
-                            smallText = if(shortPauseState.value > 0.seconds) "Pause time" else if(longPauseSate.value > 0.seconds) "Long pause" else "Focus time"
+                            indicatorValue = if (shortPauseState.value > 0.seconds) shortPauseState.value.inWholeSeconds else if (longPauseSate.value > 0.seconds) longPauseSate.value.inWholeSeconds else mainTimerState.value.inWholeSeconds,
+                            maxIndicatorValue = if (shortPauseState.value > 0.seconds && shortPauseDuration.isNotBlank()) shortPauseDuration.toInt().minutes.inWholeSeconds else if (longPauseSate.value > 0.seconds && longPauseDuration.isNotBlank()) longPauseDuration.toInt().minutes.inWholeSeconds else if (mainTimerState.value > 0.seconds && focusDuration.isNotBlank()) focusDuration.toInt().minutes.inWholeSeconds else 10.minutes.inWholeSeconds,
+                            smallText = if (shortPauseState.value > 0.seconds) "Pause time" else if (longPauseSate.value > 0.seconds) "Long pause" else "Focus time"
                         )
 
-                        Log.d("TAG", "MainScreen: ${mainTimerState.value.absoluteValue.inWholeSeconds}")
+                        Log.d(
+                            "TAG",
+                            "MainScreen: ${mainTimerState.value.absoluteValue.inWholeSeconds}"
+                        )
 
                         Spacer(modifier = Modifier.height(10.dp))
 
@@ -118,86 +126,30 @@ fun MainScreen() {
                             fontSize = 25.sp
                         )
 
-                        Column(
-                            horizontalAlignment = Alignment.Start,
-                            modifier = Modifier.width(300.dp)
-                        ) {
+                        CardBackground(
+                            modifier = Modifier.fillMaxWidth(),
+                            focusDuration,
+                            shortPauseDuration,
+                            cycleUntilLongPause,
+                            longPauseDuration
+                        )
 
-                            Text(
-                                text = "Focus time: $focusDuration",
-                                fontFamily = fontFamilyLexend,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 15.sp
-                            )
+                        Button(
+                            onClick = {
+                                mainTrackerViewModel.start(
+                                    focusDuration.toInt().minutes,
+                                    shortPauseDuration.toInt().minutes,
+                                    longPauseDuration.toInt().minutes,
+                                    cycleUntilLongPause.toInt()
+                                )
 
-                            Text(
-                                text = "Short pause duration: $shortPauseDuration",
-                                fontFamily = fontFamilyLexend,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 15.sp
-                            )
-
-                            Text(
-                                text = "Cycles until long pause: $cycleUntilLongPause",
-                                fontFamily = fontFamilyLexend,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 15.sp
-                            )
-
-                            Text(
-                                text = "Long pause duration: $longPauseDuration",
-                                fontFamily = fontFamilyLexend,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 15.sp
-                            )
-
-                            Button(
-                                onClick = {
-                                    mainTrackerViewModel.start(
-                                        focusDuration.toInt().minutes,
-                                        shortPauseDuration.toInt().minutes,
-                                        longPauseDuration.toInt().minutes,
-                                        cycleUntilLongPause.toInt()
-                                    )
-
-                                }
-                            ) {
-                                Text(text = "Click")
                             }
-
-                            Text(
-                                text = "Current time: ${mainTimerState.value.absoluteValue}",
-                                fontFamily = fontFamilyLexend,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 25.sp
-                            )
-
-                            Text(
-                                text = "Current short pause: ${shortPauseState.value.absoluteValue}",
-                                fontFamily = fontFamilyLexend,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 25.sp
-                            )
-
-                            Text(
-                                text = "Current cycle: ${cycleState.value.absoluteValue}",
-                                fontFamily = fontFamilyLexend,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 25.sp
-                            )
-
-                            Text(
-                                text = "Current long pause: ${longPauseSate.value.absoluteValue}",
-                                fontFamily = fontFamilyLexend,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 25.sp
-                            )
-
+                        ) {
+                            Text(text = "Click")
                         }
+
                     }
-
                 }
-
 
                 Icon(
                     painter = painterResource(id = R.drawable.edit),
@@ -383,15 +335,15 @@ fun MainScreen() {
         }
     }
 
-    if( focusDuration.isNotBlank() && mainTimerState.value.absoluteValue == focusDuration.toInt().minutes){
-        mpStart.start()
-    } else if(shortPauseDuration.isNotBlank() && shortPauseState.value.absoluteValue == shortPauseDuration.toInt().minutes  ) {
-        mpStop.start()
-    } else if(longPauseSate.value == 1.seconds) {
-        mpPause.start()
-    } else if(longPauseDuration.isNotBlank() && longPauseSate.value.absoluteValue == longPauseDuration.toInt().minutes) {
-        mpStop.start()
-    }
+//    if( focusDuration.isNotBlank() && mainTimerState.value.absoluteValue == focusDuration.toInt().minutes){
+//        mpStart.start()
+//    } else if(shortPauseDuration.isNotBlank() && shortPauseState.value.absoluteValue == shortPauseDuration.toInt().minutes  ) {
+//        mpStop.start()
+//    } else if(longPauseSate.value == 1.seconds) {
+//        mpPause.start()
+//    } else if(longPauseDuration.isNotBlank() && longPauseSate.value.absoluteValue == longPauseDuration.toInt().minutes) {
+//        mpStop.start()
+//    }
 
 }
 
