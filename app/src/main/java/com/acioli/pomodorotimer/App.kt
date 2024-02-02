@@ -17,7 +17,7 @@ open class App : Application() {
             val channel = NotificationChannel(
                 "pomodoro_timer",
                 "Pomodoro Timer Notification",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_LOW
             )
 
             val notificationManager =

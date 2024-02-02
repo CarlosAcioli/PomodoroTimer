@@ -6,7 +6,9 @@ import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,9 +47,11 @@ fun CustomComponent(
     canvasSize: Dp = 300.dp,
     indicatorValue: Long = 0L,
     maxIndicatorValue: Long = 25L,
+    currentCycle: String = "0",
+    maxCycle: String = "0",
     backgroundIndicatorColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
     backgroundIndicatorStrokeWidth: Float = 50f,
-    foregroundIndicatorColor: Color = MaterialTheme.colorScheme.primary,
+    foregroundIndicatorColor: Color = MaterialTheme.colorScheme.tertiary,
     foregroundIndicatorStrokeWidth: Float = 50f,
 //    indicatorStrokeCap: StrokeCap = StrokeCap.Round,
     bigTextFontSize: TextUnit = MaterialTheme.typography.headlineLarge.fontSize,
@@ -55,7 +59,7 @@ fun CustomComponent(
     bigTextSuffix: String = "",
     smallText: String = "Focus time",
     smallTextFontSize: TextUnit = MaterialTheme.typography.bodySmall.fontSize,
-    smallTextColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+    smallTextColor: Color = MaterialTheme.colorScheme.onBackground
 ) {
     var allowedIndicatorValue by remember {
         mutableStateOf(maxIndicatorValue)
@@ -99,6 +103,22 @@ fun CustomComponent(
         animationSpec = tween(1000), label = ""
     )
 
+    val animatedCurrentCycleColor by animateColorAsState(
+        targetValue = if (allowedIndicatorValue == 0L)
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+        else
+            bigTextColor,
+        animationSpec = tween(1000), label = ""
+    )
+
+    val animateSmallTextColor by animateColorAsState(
+        targetValue = if(allowedIndicatorValue == 0L)
+            MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
+        else
+            smallTextColor,
+        animationSpec = tween(1000), label = ""
+    )
+
     Column(
         modifier = Modifier
             .size(canvasSize)
@@ -125,10 +145,11 @@ fun CustomComponent(
             bigText = receivedValue.toLong().timeFormat(),
             bigTextFontSize = bigTextFontSize,
             bigTextColor = animatedBigTextColor,
-            bigTextSuffix = bigTextSuffix,
             smallText = smallText,
-            smallTextColor = smallTextColor,
-            smallTextFontSize = smallTextFontSize
+            smallTextColor = animateSmallTextColor,
+            currentCycle = currentCycle,
+            maxCycle = maxCycle,
+            cycleColor = animatedCurrentCycleColor
         )
     }
 
@@ -138,7 +159,6 @@ fun DrawScope.backgroundIndicator(
     componentSize: Size,
     indicatorColor: Color,
     indicatorStrokeWidth: Float,
-//    indicatorStokeCap: StrokeCap
 ) {
     drawArc(
         size = componentSize,
@@ -186,10 +206,11 @@ fun EmbeddedElements(
     bigText: String,
     bigTextFontSize: TextUnit,
     bigTextColor: Color,
-    bigTextSuffix: String,
     smallText: String,
     smallTextColor: Color,
-    smallTextFontSize: TextUnit
+    currentCycle: String,
+    maxCycle: String,
+    cycleColor: Color
 ) {
     Text(
         text = smallText,
@@ -202,6 +223,13 @@ fun EmbeddedElements(
         text = bigText,
         color = bigTextColor,
         fontSize = bigTextFontSize,
+        textAlign = TextAlign.Center,
+        fontWeight = FontWeight.Bold
+    )
+    Text(
+        text = "$currentCycle/$maxCycle",
+        color = cycleColor,
+        fontSize = 20.sp,
         textAlign = TextAlign.Center,
         fontWeight = FontWeight.Bold
     )
