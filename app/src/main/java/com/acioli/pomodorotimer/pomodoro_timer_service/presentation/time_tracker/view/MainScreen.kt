@@ -40,6 +40,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +60,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.acioli.pomodorotimer.R
 import com.acioli.pomodorotimer.pomodoro_timer_service.domain.service.PomodoroTimerService
@@ -73,13 +75,23 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MainScreen(context: Context) {
+fun MainScreen(
+    context: Context,
+    service: PomodoroTimerService,
+    focusDurationPref: String = "",
+    shortPauseDurationPref: String = "",
+    cycleUntilLongPausePref: String = "",
+    longPauseDurationPref: String = ""
+) {
 
     var isSheetOpen by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
     // val service: PomodoroTimerService = PomodoroTimerService()
-//    val focusTime = service.focusTime.collectAsState()
+    val focusTime = service.focusTime.collectAsState()
+    val shortPauseTime = service.pauseTime.collectAsState()
+    val longPauseTime = service.longPauseTime.collectAsState()
+    val cycleIndicator = service.cycleIndicator.collectAsState()
 
     val focusRequester1 = remember { FocusRequester() }
     val focusRequester2 = remember { FocusRequester() }
@@ -87,13 +99,26 @@ fun MainScreen(context: Context) {
     val focusManager = LocalFocusManager.current
 
     val mpStart: MediaPlayer = MediaPlayer.create(context, R.raw.start_timer)
-    val mpPause: MediaPlayer = MediaPlayer.create(context, R.raw.pause_timer)
-    val mpStop: MediaPlayer = MediaPlayer.create(context, R.raw.end_timer)
+//    val mpPause: MediaPlayer = MediaPlayer.create(context, R.raw.pause_timer)
+//    val mpStop: MediaPlayer = MediaPlayer.create(context, R.raw.end_timer)
 
-    var focusDuration by rememberSaveable { mutableStateOf("") }
-    var shortPauseDuration by rememberSaveable { mutableStateOf("") }
-    var cycleUntilLongPause by rememberSaveable { mutableStateOf("") }
-    var longPauseDuration by rememberSaveable { mutableStateOf("") }
+    var focusDuration by rememberSaveable { mutableStateOf(focusDurationPref) }
+    var shortPauseDuration by rememberSaveable { mutableStateOf(shortPauseDurationPref) }
+    var cycleUntilLongPause by rememberSaveable { mutableStateOf(cycleUntilLongPausePref) }
+    var longPauseDuration by rememberSaveable { mutableStateOf(longPauseDurationPref) }
+
+//    LaunchedEffect(key1 = focusTime.value) {
+//        focusDuration = focusDurationPref
+//    }
+
+    val sharedPref = context.getSharedPreferences("userData", Context.MODE_PRIVATE)
+    sharedPref.edit() {
+        putString("focusDuration", focusDuration)
+        putString("shortPauseDuration", shortPauseDuration)
+        putString("cycleUntilLongPause", cycleUntilLongPause)
+        putString("longPauseDuration", longPauseDuration)
+        apply()
+    }
 
     val mainTrackerViewModel = viewModel<PomodoroViewModel>()
     val mainTimerState = mainTrackerViewModel.state.collectAsState()
@@ -112,11 +137,19 @@ fun MainScreen(context: Context) {
         mainTimerState.value.inWholeSeconds
     }
 
-    val maxIndicatorValueCondition = if (shortPauseState.value > 0.seconds && shortPauseDuration.isNotBlank()) {
+    val indicatorValueService = if(focusTime.value > 0.seconds) {
+        focusTime.value.inWholeSeconds
+    } else if(shortPauseTime.value > 0.seconds) {
+        shortPauseTime.value.inWholeSeconds
+    } else {
+        longPauseTime.value.inWholeSeconds
+    }
+
+    val maxIndicatorValueCondition = if (shortPauseTime.value > 0.seconds && shortPauseDuration.isNotBlank()) {
         shortPauseDuration.toInt().minutes.inWholeSeconds
-    } else if (longPauseSate.value > 0.seconds && longPauseDuration.isNotBlank()) {
+    } else if (longPauseTime.value > 0.seconds && longPauseDuration.isNotBlank()) {
         longPauseDuration.toInt().minutes.inWholeSeconds
-    } else if (mainTimerState.value > 0.seconds && focusDuration.isNotBlank()) {
+    } else if (focusTime.value > 0.seconds && focusDuration.isNotBlank()) {
         focusDuration.toInt().minutes.inWholeSeconds
     } else {
         10.minutes.inWholeSeconds
@@ -149,14 +182,14 @@ fun MainScreen(context: Context) {
 
                         CustomComponent(
                             modifier = Modifier.height(280.dp),
-                            indicatorValue = indicatorValuesCondition,
+                            indicatorValue = indicatorValueService,
                             maxIndicatorValue = maxIndicatorValueCondition,
-                            currentCycle = cycleState.value.toString(),
+                            currentCycle = cycleIndicator.value.toString(),
                             maxCycle = cycleUntilLongPause.ifBlank { "0" },
-                            smallText = if (shortPauseState.value > 0.seconds) "Pause time" else if (longPauseSate.value > 0.seconds) "Long pause" else "Focus time"
+                            smallText = if (shortPauseTime.value > 0.seconds) "Pause time" else if (longPauseTime.value > 0.seconds) "Long pause" else "Focus time"
                         )
 
-//                        Text(text = "${focusTime.value}")
+                        Text(text = "${focusTime.value}")
 
                         Spacer(modifier = Modifier.height(10.dp))
 
@@ -469,15 +502,16 @@ fun MainScreen(context: Context) {
         }
     }
 
-    if (focusDuration.isNotBlank() && mainTimerState.value.absoluteValue == focusDuration.toInt().minutes) {
+    if (focusDuration.isNotBlank() && focusTime.value.absoluteValue == focusDuration.toInt().minutes) {
         mpStart.start()
-    } else if (shortPauseDuration.isNotBlank() && shortPauseState.value.absoluteValue == shortPauseDuration.toInt().minutes) {
-        mpStop.start()
-    } else if (longPauseSate.value == 1.seconds) {
-        mpPause.start()
-    } else if (longPauseDuration.isNotBlank() && longPauseSate.value.absoluteValue == longPauseDuration.toInt().minutes) {
-        mpStop.start()
     }
+//    else if (shortPauseDuration.isNotBlank() && shortPauseTime.value.absoluteValue == shortPauseDuration.toInt().minutes) {
+//        mpStop.start()
+//    } else if (longPauseTime.value == 1.seconds) {
+//        mpPause.start()
+//    } else if (longPauseDuration.isNotBlank() && longPauseTime.value.absoluteValue == longPauseDuration.toInt().minutes) {
+//        mpStop.start()
+//    }
 
 }
 
